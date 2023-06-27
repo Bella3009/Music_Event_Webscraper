@@ -1,6 +1,7 @@
 import requests
 import selectorlib
 from sendEmail import send_email
+import time
 
 url = "http://programmer100.pythonanywhere.com/tours/"
 Headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; '
@@ -32,11 +33,13 @@ def read():
 
 
 if __name__ == "__main__":
-    scraped = scraper(url)
-    extracted = extract(scraped)
-    print(extracted)
-    content = read()
-    if extracted != "No upcoming tours":
-        if extracted not in content:
-            store(extracted)
-            send_email("New event was found")
+    while True:
+        scraped = scraper(url)
+        extracted = extract(scraped)
+        print(extracted)
+        content = read()
+        if extracted != "No upcoming tours":
+            if extracted not in content:
+                store(extracted)
+                send_email("New event was found")
+        time.sleep(2)
