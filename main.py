@@ -9,8 +9,6 @@ Headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; '
                          'Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) '
                          'Chrome/39.0.2171.95 Safari/537.36'}
 
-connection = sqlite3.connect("data.db")
-
 
 class Event:
     def scraper(self, url):
@@ -25,22 +23,26 @@ class Event:
         return value
 
 
-def store(extracted):
-    row = extracted.split(",")
-    row = [item.strip() for item in row]
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO Events VALUES(?,?,?)", row)
-    connection.commit()
+class Database:
 
+    def __init__(self, databasePath):
+        self.connection = sqlite3.connect(databasePath)
 
-def read(extracted):
-    row = extracted.split(",")
-    row = [item.strip() for item in row]
-    band, city, date = row
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM Events WHERE Band=? AND City=? AND Date=?", (band, city, date))
-    rows = cursor.fetchall()
-    return rows
+    def store(self, extracted):
+        row = extracted.split(",")
+        row = [item.strip() for item in row]
+        cursor = self.connection.cursor()
+        cursor.execute("INSERT INTO Events VALUES(?,?,?)", row)
+        self.connection.commit()
+
+    def read(self, extracted):
+        row = extracted.split(",")
+        row = [item.strip() for item in row]
+        band, city, date = row
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM Events WHERE Band=? AND City=? AND Date=?", (band, city, date))
+        rows = cursor.fetchall()
+        return rows
 
 
 if __name__ == "__main__":
@@ -51,10 +53,11 @@ if __name__ == "__main__":
         print(extracted)
 
         if extracted != "No upcoming tours":
-            content = read(extracted)
+            database = Database(databasePath="data.db")
+            content = database.read(extracted)
             # Check the list is not empty
             if not content:
-                store(extracted)
+                database.store(extracted)
                 send_email("New event was found")
                 print("Email sent")
         time.sleep(2)
