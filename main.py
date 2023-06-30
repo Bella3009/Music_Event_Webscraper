@@ -12,17 +12,17 @@ Headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; '
 connection = sqlite3.connect("data.db")
 
 
-def scraper(url):
-    """Scrape the page source from the URL"""
-    response = requests.get(url, headers=Headers)
-    source = response.text
-    return source
+class Event:
+    def scraper(self, url):
+        """Scrape the page source from the URL"""
+        response = requests.get(url, headers=Headers)
+        source = response.text
+        return source
 
-
-def extract(source):
-    extractor = selectorlib.Extractor.from_yaml_file("extract.yaml")
-    value = extractor.extract(source)["tours"]
-    return value
+    def extract(self, source):
+        extractor = selectorlib.Extractor.from_yaml_file("extract.yaml")
+        value = extractor.extract(source)["tours"]
+        return value
 
 
 def store(extracted):
@@ -31,6 +31,7 @@ def store(extracted):
     cursor = connection.cursor()
     cursor.execute("INSERT INTO Events VALUES(?,?,?)", row)
     connection.commit()
+
 
 def read(extracted):
     row = extracted.split(",")
@@ -44,8 +45,9 @@ def read(extracted):
 
 if __name__ == "__main__":
     while True:
-        scraped = scraper(url)
-        extracted = extract(scraped)
+        event = Event()
+        scraped = event.scraper(url)
+        extracted = event.extract(scraped)
         print(extracted)
 
         if extracted != "No upcoming tours":
